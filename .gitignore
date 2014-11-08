@@ -1,0 +1,5 @@
+Gemfile.lock
+.bundle
+*.gem
+.config
+.yardoc
