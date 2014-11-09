@@ -11,8 +11,9 @@ Gem::Specification.new do |gem|
   gem.files = `git ls-files`.split("\n")
   gem.require_paths = ["lib"]
   gem.version = OmniAuth::Zendesk::VERSION
+  gem.license = 'MIT'
 
   gem.add_dependency 'omniauth', '~> 1.0'
   gem.add_dependency 'omniauth-oauth2', '~> 1.1'
-  gem.add_development_dependency 'rspec'
+  gem.add_development_dependency 'rspec', '~> 3'
 end
