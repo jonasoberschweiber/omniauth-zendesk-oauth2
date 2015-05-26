@@ -4,17 +4,43 @@ module OmniAuth
   module Strategies
     class Zendesk < OmniAuth::Strategies::OAuth2
       option :client_options, {
-        site: 'https://test.zendesk.com',
         authorize_url: '/oauth/authorizations/new',
-        token_url: '/oauth/tokens'
+        token_url:     '/oauth/tokens'
       }
 
-      option :scopes
+      option :scope, "read"
+      option :subdomain, "test"
 
       def authorize_params
-        super.tap do |params|
-          if request.params['scope']
-            params[:scope] = request.params[v]
+        options.scope = request.params["scope"] if request.params["scope"]
+        super
+      end
+
+      def callback_phase
+        zendesk_url # call it so it's memoized and we can ditch the session variable
+        session.delete "subdomain"
+        super
+      end
+
+      def client
+        ::OAuth2::Client.new(options.client_id, options.client_secret, oauth_client_options)
+      end
+
+      def oauth_client_options
+        deep_symbolize(options.client_options.merge({site: zendesk_url}))
+      end
+
+      def zendesk_url
+        @zendesk_url ||= begin
+          if options.client_options["site"]
+            options.client_options["site"]
+          else
+            if request.params["subdomain"] && request.params["subdomain"].empty?
+              request.params["subdomain"] = nil
+            end
+            options.subdomain = request.params["subdomain"] || session["subdomain"] || options.subdomain
+            session["subdomain"] = options.subdomain
+            "https://#{options.subdomain}.zendesk.com"
           end
         end
       end
@@ -39,6 +65,7 @@ module OmniAuth
       extra do
         { 'raw_info' => raw_info }
       end
+
     end
   end
 end

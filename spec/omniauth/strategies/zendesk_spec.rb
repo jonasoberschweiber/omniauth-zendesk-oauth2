@@ -5,19 +5,31 @@ describe OmniAuth::Strategies::Zendesk do
     OmniAuth::Strategies::Zendesk.new({})
   end
 
-  context 'client options' do
-    it 'should have correct site' do
-      site = subject.options.client_options.site
-      expect(site).to eq('https://test.zendesk.com')
+  context '#zendesk_url' do
+
+    it "defaults to the 'test' subdomain" do
+      allow(subject).to receive(:request).and_return(OpenStruct.new(params: {}))
+      allow(subject).to receive(:session).and_return({})
+      expect(subject.zendesk_url).to eq("https://test.zendesk.com")
     end
 
-    it 'should let client override site' do
-      strategy = OmniAuth::Strategies::Zendesk.new(
+    it "overrides the site with client_options" do
+      subject = OmniAuth::Strategies::Zendesk.new(
         'KEY', 'SECRET',
         client_options: { site: 'https://test2.zendesk.com' }
       )
-      site = strategy.options.client_options.site
-      expect(site).to eq('https://test2.zendesk.com')
+      allow(subject).to receive(:request).and_return(OpenStruct.new(params: {}))
+      allow(subject).to receive(:session).and_return({})
+      expect(subject.zendesk_url).to eq("https://test2.zendesk.com")
+    end
+
+    it "overrides the site with a request parameter" do
+      subject.options.client_options.site
+      allow(subject).to receive(:session).and_return({})
+      allow(subject).to receive(:request) do
+        double("Request", :params => {"subdomain" => "testsite"})
+      end
+      expect(subject.zendesk_url).to eq('https://testsite.zendesk.com')
     end
   end
 
@@ -46,4 +58,5 @@ describe OmniAuth::Strategies::Zendesk do
       it {expect(subject.info).to have_key 'organization_id'}
     end
   end
+
 end
