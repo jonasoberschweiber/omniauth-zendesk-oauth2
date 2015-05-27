@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'ostruct'
 
 describe OmniAuth::Strategies::Zendesk do
   subject do
