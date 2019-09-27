@@ -16,6 +16,25 @@ module OmniAuth
         super
       end
 
+      def request_phase
+        if invalid_subdomain?
+          fail!("Invalid subdomain, please ensure subdomain doesn't contain periods or question marks")
+        else
+          super
+        end
+      end
+
+      # Don't allow ? or . in subdomain, for security reasons. User could be
+      # redirected to attacker-controller domain if subdomain is something like
+      # "bishopfox.com?name=value"
+      def invalid_subdomain?
+        if request.params["subdomain"]
+          return true if request.params["subdomain"].include?("?")
+          return true if request.params["subdomain"].include?(".")
+        end
+        false
+      end
+
       def callback_phase
         zendesk_url # call it so it's memoized and we can ditch the session variable
         session.delete "subdomain"
@@ -69,7 +88,6 @@ module OmniAuth
       extra do
         { 'raw_info' => raw_info }
       end
-
     end
   end
 end
