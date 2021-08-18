@@ -45,6 +45,12 @@ module OmniAuth
         end
       end
 
+      def callback_url
+        # make sure the query string doesnt get added to the redirect_uri
+        # https://github.com/intridea/omniauth-oauth2/issues/93
+        full_host + script_name + callback_path
+      end
+
       def raw_info
         @raw_info ||= access_token.get('/api/v2/users/me.json').parsed
       end
